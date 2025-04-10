@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  catalog:
+    build: ./catalog_server
+    container_name: catalog
+    hostname: catalog
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./catalog_server/database:/usr/src/app/database
+    environment:
+      - NODE_ENV=production
+    networks:
+      - bazar-net
+
+  order:
+    build: ./order_server
+    container_name: order
+    hostname: order
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - CATALOG_URL=http://catalog:3000
+    depends_on:
+      - catalog
+    networks:
+      - bazar-net
+
+  client:
+    build: ./client_server
+    container_name: client
+    hostname: client
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - CATALOG_SERVICE_URL=http://catalog:3000
+      - ORDER_SERVICE_URL=http://order:4000
+    depends_on:
+      - catalog
+      - order
+    networks:
+      - bazar-net
+
+networks:
+  bazar-net:
+    driver: bridge
