@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  catalog:
+    build: ./catalog_server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./catalog_server/database:/usr/src/app/database
+    environment:
+      - NODE_ENV=production
+
+  order:
+    build: ./order_server
+    ports:
+      - "4000:4000"
+    depends_on:
+      - catalog
+    environment:
+      - NODE_ENV=production
+
+  client:
+    build: ./client_server
+    ports:
+      - "5000:5000"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - catalog
+      - order
+    environment:
+      - NODE_ENV=production
