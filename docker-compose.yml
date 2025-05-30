@@ -1,0 +1,64 @@
+
+version: '3'
+services:
+  catalog_server:
+    build: ./catalog_server
+    container_name: catimg
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./catalog_server/Database/Book.db:/usr/src/app/Book.db
+    networks:
+      - bazar-network
+    environment:
+      - SERVER_ID=primary
+
+  catalog-server-replica:
+    build: ./catalog-server-replica
+    container_name: catimg_replica
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./catalog-server-replica/Book-replica.db:/usr/src/app/Book-replica.db
+    networks:
+      - bazar-network
+    environment:
+      - SERVER_ID=replica
+
+  order_server:
+    build: ./order_server
+    container_name: orderimg
+    ports:
+      - "4000:4000"
+    depends_on:
+      - catalog_server
+    networks:
+      - bazar-network
+
+  order-server-replica:
+    build: ./order-server-replica
+    container_name: orderimg_replica
+    ports:
+      - "4001:4001"
+    depends_on:
+      - catalog-server-replica
+    networks:
+      - bazar-network
+
+  client_server:
+    build: ./client_server
+    container_name: clientimg
+    ports:
+      - "5000:5000"
+    depends_on:
+      - catalog_server
+      - catalog-server-replica
+      - order_server
+      - order-server-replica
+    networks:
+      - bazar-network
+
+networks:
+  bazar-network:
+    driver: bridge
+
